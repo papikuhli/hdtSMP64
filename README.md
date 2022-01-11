@@ -80,8 +80,8 @@ Bullet:
 
 ```
 d:
-mkdir Dev-noAVX
-cd Dev-noAVX
+mkdir HDT-SMP
+cd HDT-SMP
 git clone https://github.com/microsoft/Detours.git
 git clone https://github.com/bulletphysics/bullet3.git
 cd Detours
@@ -96,37 +96,43 @@ supports it.
 + Note that AVX support in Bullet and the HDT-SMP plugin itself are independent configuration options. Enable
   it in both for maximum performance; disable it in both for maximum compatibility.
 
-Open D:\Dev-noAVX\bullet3\BULLET_PHYSICS.sln in Visual Studio, select the Release configuration, then 
+Open D:\HDT-SMP\bullet3\BULLET_PHYSICS.sln in Visual Studio, select the Release configuration, then 
 Build -> Build solution.
 
-Download skse64_2_00_19.7z and unpack into Dev-noAVX (source code is included in the official distribution),
+Download skse64_2_01_05.7z and unpack into Dev-noAVX (source code is included in the official distribution),
 then get the HDT-SMP source:
 
 ```
-cd D:\Dev-noAVX\skse64_2_00_19\src\skse64
+cd D:\HDT-SMP\skse64_2_01_05\src\skse64
 git init
 git remote add origin https://github.com/Karonar1/hdtSMP64.git
 git fetch
 git checkout master
 ```
 
-Open D:\Dev-noAVX\skse64_2_00_19\src\skse64\hdtSMP64.sln in Visual Studio. If you are asked to retarget
+Open D:\HDT-SMP\skse64_2_01_05\src\skse64\hdtSMP64.sln in Visual Studio. If you are asked to retarget
 projects, just accept the defaults and click OK.
 
 Open properties for the hdtSMP64 project. Select "All Configurations" at the top, and the C/C++ page. Add the
 following to Additional Include Directories (just delete anything that was there before):
-+ D:\Dev-noAVX\Detours\include
-+ D:\Dev-noAVX\bullet3\src
-+ D:\Dev-noAVX\skse64_2_00_19\src
++ D:\HDT-SMP\Detours\include
++ D:\HDT-SMP\bullet3\src
++ D:\HDT-SMP\skse64_2_01_05\src
 
 On the Linker -> General page, add the following to Additional Library Directories:
-+ D:\Dev-noAVX\bullet3\lib\Release
-+ D:\Dev-noAVX\Detours\lib.X64
++ D:\HDT-SMP\bullet3\lib\Release
++ D:\HDT-SMP\Detours\lib.X64
 
 Open properties for the skse64 project. Select General, and change Configuration Type from "Dynamic Library
 (.dll)" to "Static Library (.lib)".
 
 Make the following changes to the SKSE code:
+
+at line 36 (the end of the list of class declarations), add:
+```cpp
+class BSDynamicTriShape;
+class BSFadeNode;
+```
 
 In NiObjects.h, at line 81, delete:
 ```cpp
@@ -147,14 +153,7 @@ and replace it with:
 ```cpp
 virtual BSDynamicTriShape	* GetAsBSDynamicTriShape(void);
 ```
-
-In the same file, at line 36 (the end of the list of class declarations), add:
-```cpp
-class BSDynamicTriShape;
-class BSFadeNode;
-```
-
-And at line 174 (inside the `enum` definition), add:
+And at line 172 (inside the `enum` definition), add:
 ```cpp
 kNone =		0,
 ```
@@ -169,12 +168,20 @@ and replace it with:
 EventDispatcher<TESMoveAttachDetachEvent>			unk840;					//  840 - sink offset 0C8
 ```
 
-In GameMenus.h, befor line 1105 (just before the GetSingleton declaration), add:
+In GameMenus.h, befor line 1098 (just before the GetSingleton declaration), add:
 ```cpp
 bool IsGamePaused() { return numPauseGame > 0; }
 ```
 
-Now you should be able to select the Release or Release_noAVX configuration and build the plugin.
+For SKSE64 2.1.5: open skse64.sln with a text editor, look for "common/common" and replace it by "common".
+
+Close Visual Studio and open D:\HDT-SMP\skse64_2_01_05\src\skse64\hdtSMP64.sln in Visual Studio.
+Open the properties for the different projects (Alt+F7), and for those with an Post-build event (skse64, skse64_loader, skse64_steam_loader), disable it by setting Yes to No.
+Select Release and x64; then generate the solution.
+For SKSE 2.1.5, ignore the errors concerning the projects with "loader" in their name.
+
+Close Visual Studio and reopen the hdtSMP64.sln file.
+Depending on your edition, CPU and GPU, select your configuration (ex: AE_CUDA_AVX), x64 and Build -> Rebuild.
 
 ## Credits
 
